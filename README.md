@@ -66,3 +66,12 @@ Netflix evolved from Ratings predictions to Ranking Predictions in 2012.
 - https://towardsdatascience.com/deep-dive-into-netflixs-recommender-system-341806ae3b48
 - https://netflixtechblog.com/netflix-recommendations-beyond-the-5-stars-part-1-55838468f429
 - https://netflixtechblog.com/netflix-recommendations-beyond-the-5-stars-part-2-d9b96aa399f5
+
+Twitter RecSys explained
+- https://medium.com/data-achilles/twitters-recommendation-algorithm-explained-a46d357315d5
+
+Collaborative Filtering from scratch
+- https://www.geeksforgeeks.org/user-based-collaborative-filtering/
+
+Memory-Based RecSys
+- https://www.cs.carleton.edu/cs_comps/0607/recommend/recommender/memorybased.html#:~:text=Memory%2Dbased%20algorithms%20approach%20the,ratings%20for%20the%20active%20user.
