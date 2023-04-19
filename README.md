@@ -58,6 +58,16 @@ Please, Pay attention that this model is created for tutorial purposes and not b
 ### Stage 3: Filtering
 This stage filters out the movies that the user has already seen or manually blocked.
 
+## Ranking Model vs Content-based Reccommender System
+
+Content-based collaborative filtering and ranking binary classification are two different approaches used in recommender systems to suggest items to users.
+
+Content-based collaborative filtering involves using the attributes of the items and the preferences of the users to make recommendations. It recommends items that are similar to those that a user has liked in the past using similarities metrics. For example, if a user has liked several romantic movies in the past, the content-based collaborative filtering approach will recommend other romantic movies. This approach focuses on the content of the items and not on the preferences of other users.
+
+Ranking binary classification, on the other hand, involves predicting whether a user will like an item or not based on the historical data of the user's interactions with items. This approach involves training a machine learning model to predict the likelihood of a user liking an item. The model is trained using features such as the user's past interactions with similar items, the item's characteristics, and the context of the recommendation. The output of this approach is a score or ranking of items that the user is likely to prefer.
+
+In summary, content-based collaborative filtering focuses on item attributes, while ranking binary classification focuses on predicting the user's preference based on historical data and features.
+
 ## Useful Links 
 High level review of different types of RecSys:
 - https://thingsolver.com/introduction-to-recommender-systems/
@@ -70,8 +80,12 @@ Netflix evolved from Ratings predictions to Ranking Predictions in 2012.
 Twitter RecSys explained
 - https://medium.com/data-achilles/twitters-recommendation-algorithm-explained-a46d357315d5
 
-Collaborative Filtering from scratch
+Collaborative Filtering under the hood
 - https://www.geeksforgeeks.org/user-based-collaborative-filtering/
 
 Memory-Based RecSys
 - https://www.cs.carleton.edu/cs_comps/0607/recommend/recommender/memorybased.html#:~:text=Memory%2Dbased%20algorithms%20approach%20the,ratings%20for%20the%20active%20user.
+
+Twitter Recommender System
+- https://blog.twitter.com/engineering/en_us/topics/open-source/2023/twitter-recommendation-algorithm
+- https://github.com/twitter/the-algorithm
