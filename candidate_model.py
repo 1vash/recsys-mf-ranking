@@ -14,13 +14,14 @@ class CandidateModel(object):
 
     def load_data(self, ratings_data_path='./data/ml-25m/ratings.csv', movie_data_path='./data/ml-25m/movies.csv'):
         # Load data as dataframes
-        self.movies_data = pd.read_csv(movie_data_path)
+        self.movies_data = pd.read_csv(movie_data_path, usecols=['movieId', 'title'])
         self.ratings_data = pd.read_csv(ratings_data_path, nrows=10000)
 
     def get_recommendations_from_mf(self, user_id, top_k_movies=10):
         recommended_movies = self.candidate_df[self.candidate_df['userId'] == user_id].\
             sort_values('rating', ascending=False)
         return recommended_movies.iloc[:top_k_movies].reset_index(drop=True)
+
     def set_continuous_indexes(self):
         # Convert the movie ids and user ids to a continuous index
         # is needed to not create dataframe where only 1 item exists with item_id=256 and 255 zeros created for him
@@ -41,17 +42,34 @@ class CandidateModel(object):
         self.user_item_matrix[np.isnan(self.user_item_matrix)] = 0
 
     def perform_matrix_factorization(self):
-        # Perform Singular Value Decomposition (SVD) on the user-item matrix to generate embeddings
-        # How SVD works https://machinelearningmastery.com/singular-value-decomposition-for-machine-learning/
+        """
+        Perform Singular Value Decomposition (SVD) on the user-item matrix to generate embeddings.
+        Decomposition assumes finding user and items vectors latent factors(embeddings) which may reconstruct the matrix
+        with minimum loss
+
+        "U" - unitary matrix that represents the left singular vectors of matrix A (represents Users)
+        "S" - diagonal matrix that contains the singular values of matrix A
+        "V^T - unitary matrix that represents the right singular vectors of A (represents Items)"
+
+        How SVD works explain good here:
+            https://machinelearningmastery.com/singular-value-decomposition-for-machine-learning/
+
+        Performing a matrix factorization into only two matrices, without involving a diagonal
+        matrix is called "economy sized SVD"
+
+        Even though diagonal matrix that is obtained in the full SVD is crucial because it captures the relative
+        importance of the singular vectors. Specifically, the singular values on the diagonal of the matrix S provide
+        a measure of the "strength" of each singular vector in the decomposition.
+
+        :return: U, S, V^T
+        """
         return np.linalg.svd(self.user_item_matrix)
 
-    def reconstruct_user_item_matrix(self):
-        U, S, Vt = self.perform_matrix_factorization()
+    def reconstruct_user_item_matrix(self, U, S, Vt, k=50):
 
         # Reconstruct the user-item matrix using the SVD components
-        # choose the number of latent factors, decrease dimensionality, latent factors are also called embeddings
+        # choose the number of latent factors "k", decrease dimensionality, latent factors are also called embeddings
         # For better accuracy take maximum number of latent factors, which are equal to total number of candidates
-        k = 74
 
         print('# of total latent factors:', len(S))
         print('Chosen # of latent factors:', k)
