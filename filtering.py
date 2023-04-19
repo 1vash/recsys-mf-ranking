@@ -4,4 +4,4 @@ class Filtering(object):
         self.data = data
 
     def filter_users_not_likes(self):
-        return self.data[self.data['do_not_show_anymore'] != 1]
+        return self.data[self.data['not_interested'] != 1]
