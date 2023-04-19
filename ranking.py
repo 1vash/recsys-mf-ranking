@@ -6,7 +6,7 @@ import pandas as pd
 
 from typing import Optional, Any, List
 
-from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.preprocessing import MultiLabelBinarizer, OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
@@ -27,6 +27,9 @@ from keras.optimizers import Adam
 from keras.losses import BinaryCrossentropy
 
 
+not_train_features = ['userId', 'movieId', 'title', 'timestamp', 'rating', 'relevant_content']
+
+
 # TODO: Make RankingModel inheritable from interfaces
 
 class RankingModel(object):
@@ -41,8 +44,8 @@ class RankingModel(object):
 
         model (Sequential): The Keras Sequential model.
         mlb (MultiLabelBinarizer): Encoding object
+        enc (OneHotEncoder): Encoding object
     """
-
 
     def __init__(self):
         self.X_train: Optional[pd.DataFrame] = None
@@ -56,8 +59,10 @@ class RankingModel(object):
         self.data: Optional[pd.DataFrame] = None
 
         self.model: Optional[Any] = None
+
         # trick to not save scalers/encoders and reuse them for testing/inference
         self.mlb: Optional[Any] = None
+        self.enc: Optional[Any] = None
 
     def load_data(self,
                   ratings_data_path: str ='./data/ml-25m/ratings.csv',
@@ -71,7 +76,7 @@ class RankingModel(object):
         """
 
         # Load data as dataframes
-        movies_data = pd.read_csv(movie_data_path)
+        movies_data = pd.read_csv(movie_data_path, usecols=['movieId', 'title', 'genres'])
         ratings_data = pd.read_csv(ratings_data_path, nrows=10000)
         self.data = pd.merge(movies_data, ratings_data, on='movieId')
 
@@ -85,26 +90,33 @@ class RankingModel(object):
         one_hot_cols = self.mlb.classes_.tolist()
         self.data[one_hot_cols] = self.data[one_hot_cols].astype('int8')
 
-    def get_one_hot_features(self):
+    def get_multilabel_binarizer_genre_features(self):
         # split the genre content from pipe delimited to a list in a new column
         self.data['genres_list'] = self.data['genres'].str.split('|')
         # assign a new series to the genres_list column that contains a list of categories for each movie
         list2series = pd.Series(self.data.genres_list)
-
-        # Use "MultiLabelBinarizer" object if exists
-        if not self.mlb:
-            self.mlb = MultiLabelBinarizer()
-            self.mlb.fit(list2series)
-
+        # convert labels list to multi label binarizer (as onehot but for multiple labels for each row)
+        self.mlb = MultiLabelBinarizer()
+        self.mlb.fit(list2series)
         # use mlb to create a new dataframe of the genres from the list for each row from the original data
-        get_one_hot_features = pd.DataFrame(self.mlb.transform(list2series),
-                                            columns=self.mlb.classes_, index=list2series.index)
-        return get_one_hot_features
+        return pd.DataFrame(self.mlb.transform(list2series), columns=self.mlb.classes_, index=list2series.index)
+
+
+    def get_one_hot_features(self, categories):
+        self.enc = OneHotEncoder(handle_unknown='ignore')
+        self.enc.fit(self.data[categories])
+        transformed_data = self.enc.transform(self.data[categories]).toarray()
+        return pd.DataFrame(transformed_data, columns=self.enc.get_feature_names_out())
 
     def preprocessing(self):
-        get_one_hot_features = self.get_one_hot_features()
+        df_genres = self.get_multilabel_binarizer_genre_features()
+
+        # IMPORTANT: Users and Items are represented as one-hot encoding features for demo purposes.
+        # Use embeddings for memory efficient and more accurate solution!
+        ohe_df = self.get_one_hot_features(categories=['userId', 'movieId'])
+
         # merge the one_hot_genres with df dataframe and drop the 'genres' specific columns
-        self.data = pd.concat([self.data, get_one_hot_features], axis=1)
+        self.data = pd.concat([self.data, ohe_df, df_genres], axis=1)
         self.data = self.data.drop(['genres', 'genres_list'], axis=1)
 
     def generate_target(self, threshold=3.5):
@@ -115,7 +127,7 @@ class RankingModel(object):
         # Split data into train and test sets using random shuffling (caring about "user's historical preferences")
         # for caring about "user's current preferences" which changing over time use time based splitting
 
-        X = self.data.drop(['title', 'timestamp', 'rating', 'relevant_content'], axis=1).to_numpy()
+        X = self.data.drop(not_train_features, axis=1).to_numpy()
         y = self.data['relevant_content'].to_numpy()
 
         # As we do not tune hyperparameters, validation dataset is skipped
@@ -126,23 +138,20 @@ class RankingModel(object):
 
     def get_model(self):
         model = Sequential([
-            Dense(64, input_shape=(self.X_train.shape[1],), activation='relu'),
-            Dropout(0.4),
-            Dense(32, activation='relu'),
-            Dropout(0.4),
-            Dense(1, activation='sigmoid')
+            Dense(128, input_shape=(self.X_train.shape[1],), activation='relu'),
+            Dropout(0.5),
+            Dense(32, activation='relu', kernel_regularizer='l2'),
+            Dropout(0.5),
+            Dense(1, activation='sigmoid', kernel_regularizer='l2')
         ])
         model.compile(loss=BinaryCrossentropy(), optimizer=Adam(learning_rate=0.001), metrics=['accuracy'])
         return model
 
     def train(self):
         self.model = self.get_model()
-        print(self.model.summary())
-        self.model.fit(self.X_train, self.y_train, validation_data=(self.X_test, self.y_test), epochs=1, batch_size=64)
-
-        # You can observe after training that model does not converge acc~0.5, this is because
-        # it's impossible to predict whether content is relevant for the person having only Ids and genres
-        # For having good accuracy new more correlated to relevant_content features/embeddings
+        self.model.summary()
+        self.model.fit(self.X_train, self.y_train, validation_data=(self.X_test, self.y_test),
+                       epochs=3, batch_size=64)
 
     def take_candidates(self, user_id, item_candidates_idxs):
         item_candidates_mask = self.data.movieId.isin(item_candidates_idxs)
@@ -152,7 +161,7 @@ class RankingModel(object):
 
     @staticmethod
     def preprocess_candidates(data: pd.DataFrame):
-        taken_candidates = data.drop(['title', 'timestamp', 'rating', 'relevant_content'], axis=1)
+        taken_candidates = data.drop(not_train_features, axis=1)
         return taken_candidates.to_numpy()
 
     def predict(self, data, binary_threshold=0.5):
