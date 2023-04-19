@@ -47,7 +47,7 @@ if __name__ == '__main__':
     taken_candidates['is_relevant'], taken_candidates['relevant_score'] = ranking_model.predict(prpc_taken_candidates)
 
     cols_to_show = ['movieId', 'rating', 'is_relevant', 'relevant_score']
-    taken_candidates = taken_candidates[cols_to_show].sort_values('relevant_score', ascending=False).reset_index()
+    taken_candidates = taken_candidates[cols_to_show].sort_values('relevant_score', ascending=False).reset_index(drop=True)
     # Just imagine, person set do not provide me this item as it's totally disgusting
     taken_candidates['not_interested'] = np.random.choice([0, 1], size=len(taken_candidates))
     print(f'\nRanking Candidates with scores for user {USER_ID}:\n', taken_candidates.head(10))
