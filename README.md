@@ -79,6 +79,10 @@ Netflix evolved from Ratings predictions to Ranking Predictions in 2012.
 - https://netflixtechblog.com/netflix-recommendations-beyond-the-5-stars-part-1-55838468f429
 - https://netflixtechblog.com/netflix-recommendations-beyond-the-5-stars-part-2-d9b96aa399f5
 
+Why do traditional offline metrics not correlate with A/B tests? Netflix offline-online testing process 
+- https://www.quora.com/What-offline-evaluation-metric-for-recommender-systems-better-correlates-with-online-AB-test-results
+- https://netflixtechblog.com/netflix-recommendations-beyond-the-5-stars-part-2-d9b96aa399f5
+
 Twitter RecSys explained
 - https://medium.com/data-achilles/twitters-recommendation-algorithm-explained-a46d357315d5
 
