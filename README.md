@@ -96,6 +96,8 @@ P.S Incorporation additional features in Collaborative Filtering is done by comb
 - https://towardsdatascience.com/recsys-series-part-4-the-7-variants-of-matrix-factorization-for-collaborative-filtering-368754e4fab5
 - https://stats.stackexchange.com/questions/518276/adding-explicit-user-info-to-matrix-factorization#_=_
 
+How to evaluate a Content-based Recommender System
+- https://stackoverflow.com/questions/6167855/how-to-evaluate-a-content-based-recommender-system
 
 KNN vs Collaborative Filtering in RecSys. KNN shares some common ideas with Collaborative Filtering, but they are different algorithms.
 - https://stackoverflow.com/questions/7742706/k-nearest-neighbour-vs-user-based-nearest-neighbour#_=_
@@ -106,3 +108,12 @@ Memory-Based RecSys
 Twitter Recommender System
 - https://blog.twitter.com/engineering/en_us/topics/open-source/2023/twitter-recommendation-algorithm
 - https://github.com/twitter/the-algorithm
+
+Binary Classification Ranking vs Learning-to-Rank
+https://chat.openai.com/share/a3a39fe8-4a35-412b-b69a-ffb3ea4d5e97
+
+Tensorflow LTR Ranking
+https://www.youtube.com/watch?v=BthUPVwA59s
+https://github.com/tensorflow/ranking/tree/master
+http://bendersky.github.io/res/TF-Ranking-ICTIR-2019.pdf
+
